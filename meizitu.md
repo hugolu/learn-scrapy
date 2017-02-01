@@ -7,6 +7,27 @@
 Python Scrapy 裡面很多學問，但不一定對現在的我都有用，不如找個有趣的主題，快速的、粗淺的認識這個工具。
 爬圖這個題目有趣，尤其爬的是美女圖，BJ4。
 
+## 觀察網站
+
+## 建立專案
+```shell
+scrapy startproject myproject
+cd myproject
+scrapy genspider meizitu www.meizitu.com
+```
+
+## Item
+src: [items.py](myproject/myproject/items.py)
+
+## Spider
+src: [meizitu.py](myproject/myproject/spiders/meizitu.py)
+
+## Setting
+src: [settings.py](myproject/myproject/settings.py)
+
+## Pipeline
+src: [pipelines.py](myproject/myproject/pipelines.py)
+
 ---
 ## 參考
 - [Scrapy 1.0 文档](http://scrapy-chs.readthedocs.io/zh_CN/1.0/index.html)
