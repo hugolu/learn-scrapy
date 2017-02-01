@@ -64,9 +64,10 @@ DOWNLOAD_DELAY = 1
 
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'myproject.pipelines.SomePipeline': 300,
-#}
+ITEM_PIPELINES = {
+    'myproject.pipelines.ImageDownloadPipeline': 300,
+}
+IMAGES_STORE = 'images'
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html

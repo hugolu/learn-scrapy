@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import scrapy
 from scrapy.selector import Selector
+from scrapy.contrib.loader import ItemLoader, Identity
+from myproject.items import MeizituItem
 
 class MeizituSpider(scrapy.Spider):
     name = "meizitu"
@@ -28,10 +30,8 @@ class MeizituSpider(scrapy.Spider):
 
     def parse_item(self, response):
         print('  >>>> %s' % response.url)
-        selector = scrapy.Selector(response)
 
-        pics = selector.xpath('//div[@id="picture"]/p/img/@src').extract()
-        for pic in pics:
-            print('    >> %s' % pic)
-
-        pass
+        loader = ItemLoader(item=MeizituItem(), response=response)
+        loader.add_xpath('name', '//h2/a/text()')
+        loader.add_xpath('img_urls', '//div/p/img/@src', Identity())
+        return loader.load_item()

@@ -9,3 +9,10 @@
 class MyprojectPipeline(object):
     def process_item(self, item, spider):
         return item
+
+class ImageDownloadPipeline(object):
+    def process_item(self, item, spider):
+        if 'img_urls' in item:
+            for url in item['img_urls']:
+                print('    >> %s' % url)
+        pass
