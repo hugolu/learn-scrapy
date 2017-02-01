@@ -54,6 +54,20 @@ scrapy genspider meizitu www.meizitu.com
 src: [items.py](myproject/myproject/items.py)
 
 ```python
+class MeizituItem(scrapy.Item):
+    name = scrapy.Field()
+    img_urls = scrapy.Field()
+```
+
+這個 project 只關心一件事情，就是圖片的 URL。定義一個 Item 容器存放相關信息：
+
+- `name` 文章名
+- `img_urls` 圖片連結
+
+## Spider
+src: [meizitu.py](myproject/myproject/spiders/meizitu.py)
+
+```python
 class MeizituSpider(scrapy.Spider):
     name = "meizitu"
     allowed_domains = ["www.meizitu.com"]
@@ -89,11 +103,45 @@ class MeizituSpider(scrapy.Spider):
 - 首先找出文章連結，透過 `xpath('//div[@class="metaRight"]/h2/a/@href | //h3[@class="tit"]/a/@href')` 描述想要抽取的元素，取得文章連結後產生新的 Request，並告訴 Scrapy Engine 將來收到 Response 後交由 `parse_item()` callback 處理。
 - 其次在網頁導覽處，透過 `xpath('//div[@id="wp_page_numbers"]/ul/li/a/@href')` 找出「下一页」的連結，取得連結後產生新的 Request，並告訴 Scrapy Engine 將來收到 Response 後交由 `parse()` callback 處理。
 
-## Spider
-src: [meizitu.py](myproject/myproject/spiders/meizitu.py)
+```python
+    def parse_item(self, response):
+        print('  >>>> %s' % response.url)
+
+        loader = ItemLoader(item=MeizituItem(), response=response)
+        loader.add_xpath('name', '//h2/a/text()')
+        loader.add_xpath('img_urls', '//div/p/img/@src', Identity())
+        return loader.load_item()
+```
+
+`parse_item()` 得到文章 Response 之後，不使用 `scrapy.Selector` 繼續解析，而是將感興趣的數據裝到 `Item` 裡面：
+- 文章名字，透過 xpath `'//h2/a/text()'` 描述，放入 `item['name']` 中
+- 圖片連結，透過 xpath `//div/p/img/@src` 描述，放入 `item['img_urls']` 中
+- 最後 return 的 item 會透過 `myproject/settings.py` 指定 pipeline 處理。
 
 ## Setting
 src: [settings.py](myproject/myproject/settings.py)
+
+```python
+BOT_NAME = 'myproject'
+
+SPIDER_MODULES = ['myproject.spiders']
+NEWSPIDER_MODULE = 'myproject.spiders'
+
+DOWNLOAD_DELAY = 1
+
+ITEM_PIPELINES = {
+    'myproject.pipelines.ImageDownloadPipeline': 300,
+}
+IMAGES_STORE = 'images'
+
+USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36'
+```
+
+- `BOT_NAME`, `SPIDER_MODULES`, `NEWSPIDER_MODULE`： project 預設值，不去動它
+- `DOWNLOAD_DELAY` 不能設為零，否則會被網站偵測到你是使用程式下載，將被禁止存取一段時間
+- `ITEM_PIPELINES` 指定 item 由那個 pipeline 處理
+- `IMAGES_STORE` 指定下載目錄
+- `USER_AGENT` 用來偽裝 Request 來自一個正常的瀏覽器
 
 ## Pipeline
 src: [pipelines.py](myproject/myproject/pipelines.py)
