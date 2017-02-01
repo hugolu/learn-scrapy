@@ -9,6 +9,40 @@ Python Scrapy 裡面很多學問，但不一定對現在的我都有用，不如
 
 ## 觀察網站
 
+先想像，如果想手動下載 [妹子图](http://www.meizitu.com/) 網站上所有的圖片，會怎麼做？
+
+### Step 1. 網頁編排
+
+發現這個網站差不多每隔幾天貼出幾則文章，當然文章內容就是美女圖。
+
+### Step 2. 網頁導覽
+
+透過 Chrome 開發人員工具觀察網頁下方導覽，得到一個想法：透過不斷點擊「下一页」就可以掃過所以文章列表。
+
+> Chrome > 檢視 > 開發人員選項 > 開發人員工具
+
+首頁：
+![](pictures/meizitu-navigation-homepage.jpg)
+
+其它頁面：
+![](pictures/meizitu-navigation-otherpages.jpg)
+
+### Step 3. 文章連結
+
+針對每個文章列表，由上往下找出每篇文章的連結。
+
+首頁：
+![](pictures/meizitu-post-homepage.jpg)
+
+其它頁面：
+![](pictures/meizitu-post-otherpages.jpg)
+
+### Step 4. 圖片連結
+
+針對每篇文章，由上往下找出每張圖片的連結。
+
+![](pictures/meizitu-postContent.jpg)
+
 ## 建立專案
 ```shell
 scrapy startproject myproject
