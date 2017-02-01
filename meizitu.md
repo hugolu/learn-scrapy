@@ -53,6 +53,42 @@ scrapy genspider meizitu www.meizitu.com
 ## Item
 src: [items.py](myproject/myproject/items.py)
 
+```python
+class MeizituSpider(scrapy.Spider):
+    name = "meizitu"
+    allowed_domains = ["www.meizitu.com"]
+    start_urls = ['http://www.meizitu.com/']
+
+    def parse(self, response):
+        ...
+```
+
+執行 `scrapy crawl meizitu` 首先從 `start_urls` 開始由 downloader 下載網頁，然後交給 `parse(self, response)` 處理
+
+```python
+    def parse(self, response):
+        print('>>>>>> %s' % response.url)
+        selector = Selector(response)
+
+        links = selector.xpath('//div[@class="metaRight"]/h2/a/@href | //h3[@class="tit"]/a/@href').extract()
+        for link in links:
+            request = scrapy.Request(link, callback = self.parse_item)
+            yield request
+
+        pages = selector.xpath('//div[@id="wp_page_numbers"]/ul/li/a/@href').extract()
+        if len(pages) > 2:
+            page = pages[-2]
+            page = page.replace('/a/', '')
+            request = scrapy.Request('http://www.meizitu.com/a/' + page, callback = self.parse)
+            yield request
+        pass
+```
+
+`parse()` 使用 `scrapy.Selector` 將 Response 包裝成方便操作的物件，接著做兩件事情：
+
+- 首先找出文章連結，透過 `xpath('//div[@class="metaRight"]/h2/a/@href | //h3[@class="tit"]/a/@href')` 描述想要抽取的元素，取得文章連結後產生新的 Request，並告訴 Scrapy Engine 將來收到 Response 後交由 `parse_item()` callback 處理。
+- 其次在網頁導覽處，透過 `xpath('//div[@id="wp_page_numbers"]/ul/li/a/@href')` 找出「下一页」的連結，取得連結後產生新的 Request，並告訴 Scrapy Engine 將來收到 Response 後交由 `parse()` callback 處理。
+
 ## Spider
 src: [meizitu.py](myproject/myproject/spiders/meizitu.py)
 
