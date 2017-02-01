@@ -146,6 +146,110 @@ USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36
 ## Pipeline
 src: [pipelines.py](myproject/myproject/pipelines.py)
 
+```python
+class ImageDownloadPipeline(object):
+    def process_item(self, item, spider):
+        if 'img_urls' in item:
+            dirpath = '%s/%s' % (settings.IMAGES_STORE, spider.name)
+            if not os.path.exists(dirpath):
+                os.makedirs(dirpath)
+
+            request_data = {...}
+
+            for url in item['img_urls']:
+                print('    >> %s' % url)
+
+                filename = '_'.join(url.split('/')[5:])
+                filepath = '%s/%s' % (dirpath, filename)
+                if os.path.exists(filepath):
+                    continue
+
+                request_data['url'] = url
+                with open(filepath, 'wb') as handle:
+                    response = requests.request(**request_data)
+                    for block in response.iter_content(8192):
+                        if not block:
+                            break
+                        handle.write(block)
+        pass
+```
+
+到了最後一關快大功告成啦，`ImageDownloadPipeline.process_item()` 方法，做以下幾件事情：
+
+- `os.makedirs(dirpath)` 如果圖片目錄不存在，就產生一個
+- `request_data = {...}` 產生 HTTP Request Get Header
+- 針對每個圖片連結發出 `requests.request(**request_data)`，收到 response 後寫入檔案 `handle.write(block)`
+
+## 執行過程
+```shell
+$ scrapy crawl -L INFO meizitu
+2017-02-01 11:10:39 [scrapy.utils.log] INFO: Scrapy 1.3.0 started (bot: myproject)
+2017-02-01 11:10:39 [scrapy.utils.log] INFO: Overridden settings: {'NEWSPIDER_MODULE': 'myproject.spiders', 'ROBOTSTXT_OBEY': True, 'LOG_LEVEL': 'INFO', 'SPIDER_MODULES': ['myproject.spiders'], 'BOT_NAME': 'myproject', 'USER_AGENT': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36', 'DOWNLOAD_DELAY': 1}
+2017-02-01 11:10:39 [scrapy.middleware] INFO: Enabled extensions:
+['scrapy.extensions.logstats.LogStats',
+ 'scrapy.extensions.telnet.TelnetConsole',
+ 'scrapy.extensions.corestats.CoreStats']
+2017-02-01 11:10:39 [scrapy.middleware] INFO: Enabled downloader middlewares:
+['scrapy.downloadermiddlewares.robotstxt.RobotsTxtMiddleware',
+ 'scrapy.downloadermiddlewares.httpauth.HttpAuthMiddleware',
+ 'scrapy.downloadermiddlewares.downloadtimeout.DownloadTimeoutMiddleware',
+ 'scrapy.downloadermiddlewares.defaultheaders.DefaultHeadersMiddleware',
+ 'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware',
+ 'scrapy.downloadermiddlewares.retry.RetryMiddleware',
+ 'scrapy.downloadermiddlewares.redirect.MetaRefreshMiddleware',
+ 'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware',
+ 'scrapy.downloadermiddlewares.redirect.RedirectMiddleware',
+ 'scrapy.downloadermiddlewares.cookies.CookiesMiddleware',
+ 'scrapy.downloadermiddlewares.stats.DownloaderStats']
+2017-02-01 11:10:39 [scrapy.middleware] INFO: Enabled spider middlewares:
+['scrapy.spidermiddlewares.httperror.HttpErrorMiddleware',
+ 'scrapy.spidermiddlewares.offsite.OffsiteMiddleware',
+ 'scrapy.spidermiddlewares.referer.RefererMiddleware',
+ 'scrapy.spidermiddlewares.urllength.UrlLengthMiddleware',
+ 'scrapy.spidermiddlewares.depth.DepthMiddleware']
+2017-02-01 11:10:39 [scrapy.middleware] INFO: Enabled item pipelines:
+['myproject.pipelines.ImageDownloadPipeline']
+2017-02-01 11:10:39 [scrapy.core.engine] INFO: Spider opened
+2017-02-01 11:10:39 [scrapy.extensions.logstats] INFO: Crawled 0 pages (at 0 pages/min), scraped 0 items (at 0 items/min)
+>>>>>> http://www.meizitu.com/
+>>>>>> http://www.meizitu.com/a/list_1_1.html
+  >>>> http://www.meizitu.com/a/5476.html
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/08/31/01.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/08/31/02.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/08/31/03.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/08/31/04.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/08/31/05.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/08/31/06.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/08/31/07.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/08/31/08.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/08/31/09.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/08/31/10.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/08/31/11.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/08/31/12.jpg
+2017-02-01 11:11:58 [scrapy.extensions.logstats] INFO: Crawled 4 pages (at 4 pages/min), scraped 1 items (at 1 items/min)
+  >>>> http://www.meizitu.com/a/5477.html
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/09/01/01.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/09/01/02.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/09/01/03.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/09/01/04.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/09/01/05.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/09/01/06.jpg
+  >>>> http://www.meizitu.com/a/5478.html
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/09/02/01.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/09/02/02.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/09/02/03.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/09/02/04.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/09/02/05.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/09/02/06.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/09/02/07.jpg
+    >> http://mm.howkuai.com/wp-content/uploads/2016a/09/02/08.jpg
+    ...
+```
+
+> 最後我沒有把整個網站的美女圖都載下來，一來下載要花時間等待 (需要調教效能)、二來已經達到我學習 Scrapy 的目的，所以停手了。
+
 ---
 ## 參考
 - [Scrapy 1.0 文档](http://scrapy-chs.readthedocs.io/zh_CN/1.0/index.html)
+- [XPath 教程](http://www.w3school.com.cn/xpath/index.asp)
+- [Requests 用户指南](http://docs.python-requests.org/zh_CN/latest/index.html)
