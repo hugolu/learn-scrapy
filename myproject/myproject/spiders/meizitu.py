@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import scrapy
 from scrapy.selector import Selector
-from scrapy.contrib.loader import ItemLoader, Identity
+from scrapy.loader import ItemLoader, Identity
 from myproject.items import MeizituItem
 
 class MeizituSpider(scrapy.Spider):
