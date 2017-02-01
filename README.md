@@ -26,3 +26,6 @@ Scrapy中的数据流由执行引擎控制，其过程如下:
 7. Spider处理Response并返回爬取到的Item及(跟进的)新的Request给引擎。
 8. 引擎将爬取到的Item给Item Pipeline，将Request给调度器。
 9. (从第二步)重复直到调度器中没有更多地request，引擎关闭该网站。
+
+## 參考
+- [Scrapy 架构概览](http://scrapy-chs.readthedocs.io/zh_CN/1.0/topics/architecture.html)
